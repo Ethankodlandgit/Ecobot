@@ -2,6 +2,8 @@ import discord
 import os
 from discord.ext  import commands
 import random
+from model import get_class 
+import requests 
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -252,17 +254,46 @@ async def adivina(ctx):
     except:
         await ctx.send(f"❌ ¡Tiempo agotado! La respuesta correcta era **{palabra}**. ¡Inténtalo la próxima vez! 🌍")
 
-async def help(ctx):
-    comandos = """
-    **🌍 Comandos disponibles:**
-    
-    1. **/datocurioso**: 🌱 Obtén un dato curioso sobre la contaminación y cómo combatirla.
-    2. **/quiz**: 🧠 Participa en un quiz ecológico con preguntas de opción múltiple.
-    3. **/adivina**: 🤔 Adivina la palabra ecológica basándote en una pista.
-    4. **/juegobasura**: 🗑️ Juega clasificando basura en el contenedor correcto. ¡Demuestra tus habilidades de reciclaje!
-    """
-    await ctx.send(comandos)
+
+@bot.command()
+async def check(ctx):
+    if ctx.message.attachments:
+        for attachments in ctx.message.attachments:
+            file_name = attachments.filename
+            file_url = attachments.url
+            await attachments.save(f"./{attachments.filename}")
+            
+            # Obtener la clasificación desde el modelo
+            classification_result = get_class(
+                model_path="./keras_model.h5",
+                labels_path="labels.txt",
+                image_paht=f"./{attachments.filename}"
+            )
+            
+            # Extraer la clase desde el resultado
+            class_name = classification_result.split(",")[0].replace("Clase:", "").strip()
+            
+            # Mapeo de emojis según el tacho
+            emoji_mapping = {
+                "Tacho Verde": "🟩",  # Tacho verde
+                "Tacho Rojo": "🟥",   # Tacho rojo
+                "Tacho Marrón": "🟫", # Tacho marrón
+                "Tacho Azul": "🟦",   # Tacho azul
+                "Tacho Amarillo": "🟨",# Tacho amarillo
+            }
+            
+            # Construir el mensaje con el emoji y el tacho
+            emoji = emoji_mapping.get(class_name, "❓")
+            response_message = (
+                f"🚮 Clasificación: **{class_name}** {emoji}\n"
+                f"📥 ¡Por favor deposita este residuo en el tacho adecuado! 🌱"
+            )
+            
+            # Enviar el mensaje al usuario
+            await ctx.send(response_message)
+    else:
+        await ctx.send("❌ Oh no, no has subido ninguna foto. Por favor, sube una imagen para clasificar.")
+        
 
 
-
-bot.run('MTMxMjQ5NDAzMjI4NjY0NjM3Mw.Gfc5H7.mz2iDgixCEhCDYXfopvPlrijRQOHol6cLZp1Jo')
+bot.run('MTMxMjQ5NDAzMjI4NjY0NjM3Mw.G2xwmf.AkQ3WdjlFCs-uqa_wNhlIGp9yz7WcvD-UXjmVE')

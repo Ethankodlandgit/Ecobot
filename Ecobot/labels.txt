@@ -1,0 +1,5 @@
+0 tacho verde
+1 tacho rojo
+2 tacho amarillo
+3 tacho marron
+4 tacho azul

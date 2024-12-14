@@ -4,6 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+"discord.py" = "*"
+shell = "*"
+keras = "==2.15"
+numpy = "*"
+requests = "*"
+tensorflow = "==2.15"
+pillow = "*"
 
 [dev-packages]
 
